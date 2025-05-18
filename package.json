@@ -1,0 +1,105 @@
+{
+	"name": "maple-code",
+	"displayName": "Maple-Code",
+	"description": "ai coding",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.100.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"main": "./dist/extension.js",
+	"activationEvents": [
+		"onView:maple-code-chat-view",
+		"onCommand:maple-code.suggestCodeFromEditor"
+	],
+	"contributes": {
+		"commands": [
+			{
+				"command": "maple-code.helloWorld",
+				"title": "Hello World"
+			},
+			{
+				"command": "maple-code.suggestCodeFromEditor",
+				"title": "Maple Code: Suggest/Complete Code",
+				"category": "Maple Code"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"when": "editorHasSelection",
+					"command": "maple-code.suggestCodeFromEditor",
+					"group": "navigation"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "maple-code-view-container",
+					"title": "Maple Code",
+					"icon": "$(maple-leaf)"
+				}
+			]
+		},
+		"views": {
+			"maple-code-view-container": [
+				{
+					"id": "maple-code-chat-view",
+					"name": "Chat",
+					"type": "webview"
+				}
+			]
+		},
+		"icons": {
+			"maple-leaf": {
+				"description": "Maple Leaf Icon",
+				"default": "./resources/maple-leaf.svg"
+			}
+		},
+		"configuration": {
+			"title": "Maple Code Configuration",
+			"properties": {
+				"maple-code.settingsFolderPath": {
+					"type": "string",
+					"description": "Specifies the absolute path to the folder containing the maple/settings.json file. If not set, the extension will look in the 'maple' subfolder of the first workspace folder."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "pnpm run package",
+		"compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+		"watch": "npm-run-all -p watch:*",
+		"watch:esbuild": "node esbuild.js --watch",
+		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+		"package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+		"compile-tests": "tsc -p . --outDir out",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+		"check-types": "tsc --noEmit",
+		"lint": "eslint src",
+		"test": "vscode-test"
+	},
+	"devDependencies": {
+		"@types/mocha": "^10.0.10",
+		"@types/node": "~20.17.47",
+		"@types/vscode": "^1.100.0",
+		"@typescript-eslint/eslint-plugin": "^8.32.1",
+		"@typescript-eslint/parser": "^8.32.1",
+		"@vscode/test-cli": "^0.0.10",
+		"@vscode/test-electron": "^2.5.2",
+		"esbuild": "^0.25.4",
+		"esbuild-sass-plugin": "^3.3.1",
+		"eslint": "^9.27.0",
+		"npm-run-all": "^4.1.5",
+		"typescript": "^5.8.3"
+	},
+	"dependencies": {
+		"@google/generative-ai": "^0.9.0",
+		"@types/marked": "^6.0.0",
+		"marked": "^15.0.11"
+	}
+}
