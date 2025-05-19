@@ -63,3 +63,55 @@ export async function loadSettings(): Promise<MapleSettings | undefined> {
 		}
 	}
 }
+
+//-------------------------------------------------------
+// Load Instruction File
+//-------------------------------------------------------
+export async function loadInstructionFile(fileName: string): Promise<string | undefined> {
+	const config = vscode.workspace.getConfiguration("maple-code");
+	const configuredPath = config.get<string>("settingsFolderPath");
+
+	if (!configuredPath || typeof configuredPath !== "string") {
+		console.warn(
+			"[Maple-Code] 'maple-code.settingsFolderPath' is not configured or is invalid. Cannot load instruction file."
+		);
+		return undefined;
+	}
+
+	let settingsFolderPath: string;
+	try {
+		settingsFolderPath = path.resolve(configuredPath);
+		const stats = await fs.stat(settingsFolderPath);
+		if (!stats.isDirectory()) {
+			console.warn(
+				`[Maple-Code] Configured settingsFolderPath "${configuredPath}" is not a directory. Cannot load instruction file.`
+			);
+			return undefined;
+		}
+	} catch (error: any) {
+		console.warn(
+			`[Maple-Code] Failed to access configured settingsFolderPath "${configuredPath}". Error: ${error.message}. Cannot load instruction file.`
+		);
+		return undefined;
+	}
+
+	const instructionFilePath = path.join(settingsFolderPath, fileName);
+	console.log(`[Maple-Code] Attempting to load instruction file from configured path: ${instructionFilePath}`);
+
+	try {
+		const fileContent = await fs.readFile(instructionFilePath, "utf-8");
+		return fileContent;
+	} catch (error: any) {
+		if (error.code === "ENOENT") {
+			console.warn(
+				`[Maple-Code] Instruction file "${fileName}" not found at ${instructionFilePath}.`
+			);
+			return undefined;
+		} else {
+			vscode.window.showErrorMessage(
+				`[Maple-Code] Failed to read instruction file "${fileName}" at ${instructionFilePath}. Error: ${error.message}`
+			);
+			return undefined;
+		}
+	}
+}

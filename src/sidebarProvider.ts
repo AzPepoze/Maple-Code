@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { GenerativeModel } from "@google/generative-ai";
+import { processChatMessage } from "./ai";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-
 	//-------------------------------------------------------
 	// Static Properties
 	//-------------------------------------------------------
@@ -42,9 +42,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.options = {
 			enableScripts: true,
-			localResourceRoots: [
-				vscode.Uri.joinPath(this._extensionUri, "media"),
-			],
+			localResourceRoots: [vscode.Uri.joinPath(this._extensionUri, "media")],
 		};
 
 		this._getHtmlForWebview(webviewView.webview)
@@ -81,6 +79,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 						cursorPosition: vscode.Position;
 					} | null = null;
 
+					// Note: Context gathering is still done here, but the text is added to the prompt
+					// within processChatMessage for better handling of combined instructions.
 					if (message.includeContext) {
 						contextInfo = this._getCurrentFileContext();
 						if (!contextInfo) {
@@ -92,48 +92,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 						}
 					}
 
-					// Construct the final prompt
-					let fullPrompt = userPrompt;
-					if (contextInfo) {
-						const contextPrefix = `Relevant code context from ${contextInfo.fileName} (${
-							contextInfo.languageId
-						}):\n\`\`\`${contextInfo.languageId}\n${contextInfo.fileContent.substring(
-							0,
-							2000
-						)}...\n\`\`\`\n\nUser query:`;
-						fullPrompt = `${contextPrefix} ${userPrompt}`;
-					}
-
-					// --- Start Streaming ---
-					this._postMessageSafe({
-						type: "addMessage",
-						value: "Maple is thinking...",
-						sender: "bot",
-						isLoading: true,
-					});
-
+					// Use the new processChatMessage function from ai.ts
 					try {
-						const chat = this._aiModel.startChat();
-						const result = await chat.sendMessageStream(fullPrompt);
-
-						let isFirstChunk = true;
-						let accumulatedResponse = "";
-
-						for await (const chunk of result.stream) {
-							const chunkText = chunk.text();
-							accumulatedResponse += chunkText;
-
-							if (isFirstChunk) {
-								this._postMessageSafe({ type: "startBotStream", initialChunk: chunkText });
-								isFirstChunk = false;
-							} else {
-								this._postMessageSafe({ type: "appendBotStream", chunk: chunkText });
-							}
-						}
-
-						this._postMessageSafe({ type: "endBotStream", fullResponse: accumulatedResponse });
+						// Pass the model, user prompt, and the sidebar provider instance
+						await processChatMessage(this._aiModel, userPrompt, this);
 					} catch (error: any) {
-						const errorMessageContent = `Error communicating with AI API: ${error.message}`;
+						const errorMessageContent = `Error processing chat message: ${error.message}`;
 						console.error(`[Maple-Code] ${errorMessageContent}`);
 						vscode.window.showErrorMessage(errorMessageContent);
 						this._postMessageSafe({ type: "clearLastBotMessage" });
