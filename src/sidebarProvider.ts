@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+// Import askAI and getCurrentFileContext from ai.ts
 import { askAI } from "./ai";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
@@ -12,12 +13,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 	//-------------------------------------------------------
 	public _view?: vscode.WebviewView;
 	private _extensionUri: vscode.Uri;
-	private _currentChatContext: {
-		fileName: string;
-		fileContent: string;
-		languageId: string;
-		cursorPosition: vscode.Position;
-	} | null = null;
 
 	//-------------------------------------------------------
 	// Constructor
@@ -55,37 +50,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 		webviewView.webview.onDidReceiveMessage(async (message: any) => {
 			if (!this._view) return;
 
-			console.log(message);
+			console.log("[Maple-Code] Received message from webview:", message);
 
 			switch (message.type) {
 				case "message":
 					let userPrompt = message.value;
-					let contextInfo: {
-						fileName: string;
-						fileContent: string;
-						languageId: string;
-						cursorPosition: vscode.Position;
-					} | null = null;
+					// Pass the includeContext flag directly
+					let includeContext = message.includeContext;
 
-					// Note: Context gathering is still done here, but the text is added to the prompt
-					// within processChatMessage for better handling of combined instructions.
-					if (message.includeContext) {
-						contextInfo = this._getCurrentFileContext();
-						if (!contextInfo) {
-							this._postMessageSafe({
-								type: "addMessage",
-								value: "Info: Could not get context from active editor.",
-								sender: "bot",
-							});
-						}
-					}
-
-					// Use the new processChatMessage function from ai.ts
+					// Use the askAI function from ai.ts
 					try {
-						// Pass the model, user prompt, and the sidebar provider instance
+						// Pass the user prompt, includeContext flag, and the sidebar provider instance
 						await askAI({
 							userPrompt: userPrompt,
-							contextInfo: JSON.stringify(contextInfo),
+							includeContext: includeContext, // Pass the boolean flag
 							sidebarProvider: this,
 						});
 					} catch (error: any) {
@@ -124,10 +102,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 		});
 	}
 
-	//-------------------------------------------------------
-	// Private Helper Methods
-	//-------------------------------------------------------
-	private _postMessageSafe(message: any) {
+	/**
+	 * Safely posts a message to the webview.
+	 * @param message The message object to post.
+	 */
+	public _postMessageSafe(message: any) {
 		if (this._view) {
 			this._view.webview.postMessage(message);
 		} else {
@@ -135,35 +114,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 		}
 	}
 
-	private _getCurrentFileContext(): {
-		fileName: string;
-		fileContent: string;
-		languageId: string;
-		cursorPosition: vscode.Position;
-	} | null {
-		const editor = vscode.window.activeTextEditor;
-		if (editor) {
-			const document = editor.document;
-			const MAX_CHARS_AROUND_CURSOR = 2000;
-			const position = editor.selection.active;
-			const startOffset = Math.max(0, document.offsetAt(position) - MAX_CHARS_AROUND_CURSOR / 2);
-			const endOffset = Math.min(
-				document.getText().length,
-				document.offsetAt(position) + MAX_CHARS_AROUND_CURSOR / 2
-			);
-			const startPos = document.positionAt(startOffset);
-			const endPos = document.positionAt(endOffset);
-			const contextText = document.getText(new vscode.Range(startPos, endPos));
-
-			return {
-				fileName: document.fileName.split(/[\\/]/).pop() || document.fileName,
-				fileContent: contextText,
-				languageId: document.languageId,
-				cursorPosition: position,
-			};
-		}
-		return null;
-	}
+	//-------------------------------------------------------
+	// Private Helper Methods
+	//-------------------------------------------------------
 
 	private async _getHtmlForWebview(webview: vscode.Webview): Promise<string> {
 		const htmlPath = vscode.Uri.joinPath(this._extensionUri, "media", "webview.html");
