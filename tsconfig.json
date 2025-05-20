@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
-		"target": "ES2022",
+		"module": "es2020",
+		"moduleResolution": "node",
 		"lib": ["ES2022", "dom"],
 		"sourceMap": true,
 		"rootDir": "src",

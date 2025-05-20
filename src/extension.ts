@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
 import { SidebarProvider } from "./sidebarProvider";
 import { loadSettings } from "./dataLoader";
-import { initializeAiModel, registerAiCommands } from "./ai";
-import { GenerativeModel } from "@google/generative-ai";
+import { initializeAiModel } from "./ai";
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('[Maple-Code] Congratulations, your extension "maple-code" is now active!');
@@ -11,10 +10,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Load Settings and Initialize AI API
 	//-------------------------------------------------------
 	const settings = await loadSettings();
-	let aiModel: GenerativeModel | undefined;
 
 	if (settings?.API_KEY) {
-		aiModel = await initializeAiModel(settings.API_KEY);
+		await initializeAiModel(settings.API_KEY);
 	} else if (settings === undefined) {
 	} else {
 		if (Object.keys(settings).length > 0 && !settings.API_KEY) {
@@ -27,7 +25,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	//-------------------------------------------------------
 	// Register Sidebar View
 	//-------------------------------------------------------
-	const sidebarProvider = new SidebarProvider(context.extensionUri, aiModel);
+	const sidebarProvider = new SidebarProvider(context.extensionUri);
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider("maple-code-chat-view", sidebarProvider));
 	console.log("[Maple-Code] Sidebar Provider registered.");
 
@@ -39,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(helloWorldDisposable);
 
-	registerAiCommands(context, aiModel, sidebarProvider);
+	// registerAiCommands(context, aiModel, sidebarProvider);
 
 	//-------------------------------------------------------
 	// Register Commands

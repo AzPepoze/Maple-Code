@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
-import { GenerativeModel } from "@google/generative-ai";
-import { processChatMessage } from "./ai";
+import { askAI } from "./ai";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
 	//-------------------------------------------------------
@@ -13,7 +12,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 	//-------------------------------------------------------
 	public _view?: vscode.WebviewView;
 	private _extensionUri: vscode.Uri;
-	private _aiModel?: GenerativeModel;
 	private _currentChatContext: {
 		fileName: string;
 		fileContent: string;
@@ -24,9 +22,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 	//-------------------------------------------------------
 	// Constructor
 	//-------------------------------------------------------
-	constructor(extensionUri: vscode.Uri, aiModel?: GenerativeModel) {
+	constructor(extensionUri: vscode.Uri) {
 		this._extensionUri = extensionUri;
-		this._aiModel = aiModel;
 	}
 
 	//-------------------------------------------------------
@@ -61,16 +58,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 			console.log(message);
 
 			switch (message.type) {
-				case "message": // User sent a message from input
-					if (!this._aiModel) {
-						this._postMessageSafe({
-							type: "addMessage",
-							value: "Error: AI model not available. Please ensure you have a workspace folder open and your API key is set in maple/settings.json.",
-							sender: "bot",
-						});
-						return;
-					}
-
+				case "message":
 					let userPrompt = message.value;
 					let contextInfo: {
 						fileName: string;
@@ -95,7 +83,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 					// Use the new processChatMessage function from ai.ts
 					try {
 						// Pass the model, user prompt, and the sidebar provider instance
-						await processChatMessage(this._aiModel, userPrompt, this);
+						await askAI({
+							userPrompt: userPrompt,
+							contextInfo: JSON.stringify(contextInfo),
+							sidebarProvider: this,
+						});
 					} catch (error: any) {
 						const errorMessageContent = `Error processing chat message: ${error.message}`;
 						console.error(`[Maple-Code] ${errorMessageContent}`);
@@ -130,13 +122,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 					console.warn("[Maple-Code] SidebarProvider: Received unknown message type: ", message.type);
 			}
 		});
-
-		// Inform webview if API key is missing after setup
-		if (!this._aiModel) {
-			const errorMessage =
-				"AI API key not found or failed to initialize. Please ensure you have a workspace folder open and your API key is set in maple/settings.json.";
-			this._postMessageSafe({ type: "addMessage", value: `Error: ${errorMessage}`, sender: "bot" });
-		}
 	}
 
 	//-------------------------------------------------------

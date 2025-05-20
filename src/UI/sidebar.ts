@@ -1,6 +1,27 @@
 declare var acquireVsCodeApi: any;
 const vscode = acquireVsCodeApi();
-import { marked } from "marked";
+import hljs from "highlight.js";
+import markdownit from "markdown-it";
+
+// Initialize markdown-it with options for highlight.js
+const md = new markdownit({
+	html: true, // Enable HTML tags in source
+	xhtmlOut: false, // Use '/' to close single tags (<br />)
+	breaks: true, // Convert '\n' in paragraphs into <br>
+	langPrefix: "hljs language-", // CSS language prefix for fenced blocks
+	linkify: true, // Autoconvert URL-like text to links
+	typography: true, // Enable some typographic replacements
+	// Set highlight function to use highlight.js
+	highlight: function (str, lang) {
+		const language = hljs.getLanguage(lang) ? lang : "plaintext";
+		try {
+			return hljs.highlight(str, { language }).value;
+		} catch (e) {
+			console.error("[Maple-Code] Highlight.js error during highlighting:", e);
+			return str; // Return original string on error
+		}
+	},
+});
 
 //-------------------------------------------------------
 // Interfaces
@@ -47,9 +68,11 @@ function autoResizeTextarea(): void {
 
 function renderMarkdown(element: HTMLElement, markdownText: string): void {
 	try {
-		element.innerHTML = marked.parse(markdownText) as string;
+		// Use markdown-it to render markdown, with highlight.js configured
+		const renderedHtml = md.render(markdownText);
+		element.innerHTML = renderedHtml;
 	} catch (e) {
-		console.error("[Maple-Code] Markdown parsing error during render:", e);
+		console.error("[Maple-Code] Markdown-it parsing error during render:", e); // Updated log message
 		element.textContent = markdownText;
 	}
 }
@@ -64,7 +87,7 @@ function addCompleteMessage(text: string, sender: "user" | "bot", isError: boole
 	if (sender === "bot") {
 		renderMarkdown(messageElement, text);
 	} else {
-		messageElement.textContent = text;
+		messageElement.innerHTML = text;
 	}
 	chatContainer.appendChild(messageElement);
 	scrollToBottom();

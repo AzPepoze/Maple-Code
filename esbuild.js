@@ -45,7 +45,7 @@ async function main() {
 
 	// Build webview
 	const webviewCtx = await esbuild.context({
-		entryPoints: ["src/UI/main.ts"],
+		entryPoints: ["src/UI/sidebar.ts"],
 		bundle: true,
 		format: "iife", // หรือ 'esm' ถ้าต้องการ module
 		minify: production,
@@ -72,11 +72,8 @@ async function main() {
 		sourcesContent: false,
 		outdir: "media", // Output Directory for CSS
 		logLevel: "silent",
-		plugins: [
-			sassPlugin(),
-		],
+		plugins: [sassPlugin()],
 	});
-
 
 	if (watch) {
 		await extensionCtx.watch();

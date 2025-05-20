@@ -5,10 +5,6 @@
 SCSS Variables
 -------------------------------------------------------
 */
-$primary-color: #3498db;
-$secondary-color: #2ecc71;
-$background-color: #f4f4f4;
-$text-color: #333;
 $border-radius: 4px;
 $input-area-height: auto;
 $button-height: 36px;
@@ -19,10 +15,10 @@ Base Styles using VS Code Theme Variables
 -------------------------------------------------------
 */
 body {
-	font-family: var(--vscode-font-family, Arial, sans-serif);
+	font-family: var(--vscode-font-family, "Segoe WPC", "Segoe UI", sans-serif);
 	margin: 0;
 	padding: 10px 12px;
-	color: var(--vscode-sideBar-foreground, $text-color);
+	color: var(--vscode-sideBar-foreground, #d0d0e0);
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
@@ -32,12 +28,12 @@ body {
 
 h1 {
 	font-size: 1.1em;
-	color: var(--vscode-sideBarTitle-foreground, $primary-color);
+	color: var(--vscode-sideBarTitle-foreground, #d0d0e0);
 	margin-top: 0;
 	margin-bottom: 10px;
 	text-align: center;
 	padding-bottom: 8px;
-	border-bottom: 1px solid var(--vscode-contrastBorder, #ccc);
+	border-bottom: 1px solid var(--vscode-textSeparator-foreground, rgba(255, 255, 255, 0.18));
 	font-weight: 600;
 }
 
@@ -54,7 +50,7 @@ Chat Container
 	border-radius: $border-radius;
 	display: flex;
 	flex-direction: column;
-	border: 1px solid var(--vscode-editorWidget-border, #ddd);
+	border: 1px solid var(--vscode-editorWidget-border, #454545);
 
 	.message {
 		padding: 12px 10px;
@@ -62,8 +58,8 @@ Chat Container
 		max-width: 100%;
 		word-wrap: break-word;
 		line-height: 1.6;
-		border-bottom: 1px solid var(--vscode-editorWidget-border, #ddd);
-		color: var(--vscode-editor-foreground, $text-color);
+		border-bottom: 1px solid var(--vscode-editorWidget-border, #454545);
+		color: var(--vscode-editor-foreground, #d0d0e0);
 		border-radius: $border-radius;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
@@ -74,6 +70,7 @@ Chat Container
 
 		&.user-message {
 			background-color: transparent;
+			white-space: break-spaces;
 
 			pre {
 				text-align: left;
@@ -82,7 +79,7 @@ Chat Container
 
 		&.bot-message {
 			&.loading-message {
-				color: var(--vscode-descriptionForeground, #777);
+				color: var(--vscode-descriptionForeground, #d0d0e0);
 				font-style: italic;
 				opacity: 0.8;
 				background-color: transparent;
@@ -90,16 +87,16 @@ Chat Container
 				border-bottom: none;
 			}
 			&.error-message {
-				color: var(--vscode-errorForeground, red);
-				border-left: 3px solid var(--vscode-errorForeground, red);
+				color: var(--vscode-errorForeground, #f48771);
+				border-left: 3px solid var(--vscode-errorForeground, #f48771);
 				padding-left: 7px;
 			}
 		}
 
 		pre {
-			background-color: var(--vscode-textBlockQuote-background, #f0f0f0);
-			border: 1px solid var(--vscode-textBlockQuote-border, #ccc);
-			color: var(--vscode-editor-foreground, $text-color);
+			background-color: var(--vscode-textBlockQuote-background, #12121f);
+			border: 1px solid var(--vscode-textBlockQuote-border, #4b5362);
+			color: var(--vscode-editor-foreground, #d0d0e0);
 			padding: 12px 14px;
 			border-radius: $border-radius;
 			overflow-x: auto;
@@ -109,12 +106,143 @@ Chat Container
 			word-wrap: break-word;
 
 			code {
-				font-family: var(--vscode-editor-font-family, "SFMono-Regular", Consolas, "Courier New", monospace);
+				font-family: var(--vscode-editor-font-family, Consolas, "Courier New", monospace);
 				font-size: 0.95em;
 				background-color: transparent !important;
 				padding: 0 !important;
 				white-space: pre-wrap;
 				word-wrap: break-word;
+			}
+
+			//-------------------------------------------------------
+			// HLJS Syntax Highlighting
+			//-------------------------------------------------------
+			/*
+				Colors based on VS Code theme variables, with fallbacks
+				Using provided fallback hex values from the new list
+			*/
+			.hljs {
+				color: var(--vscode-editor-foreground, #d0d0e0);
+			}
+
+			.hljs-comment,
+			.hljs-quote {
+				color: var(--vscode-editorInfo-foreground, #3794ff); // Mapped from editor-infoForeground
+				font-style: italic;
+			}
+
+			.hljs-keyword,
+			.hljs-selector-tag,
+			.hljs-subst {
+				color: var(--vscode-debugTokenExpression-type, #4a90e2); // Mapped from editor-keywordForeground
+			}
+
+			.hljs-number,
+			.hljs-literal,
+			.hljs-variable,
+			.hljs-template-variable,
+			.hljs-attribute {
+				color: var(--vscode-debugTokenExpression-number, #b5cea8); // Mapped from editor-numberForeground
+			}
+
+			.hljs-string,
+			.hljs-regexp,
+			.hljs-symbol,
+			.hljs-link {
+				color: var(--vscode-debugTokenExpression-string, #ce9178); // Mapped from editor-stringForeground
+			}
+
+			.hljs-class .hljs-title {
+				color: var(--vscode-symbolIcon-classForeground, #ee9d28);
+			}
+
+			.hljs-type,
+			.hljs-built_in,
+			.hljs-builtin-name {
+				color: var(
+					--vscode-debugTokenExpression-type,
+					#4a90e2
+				); // Mapped from editor-typeParameterForeground
+			}
+
+			.hljs-tag,
+			.hljs-selector-id,
+			.hljs-selector-class,
+			.hljs-template-tag,
+			.hljs-doctag,
+			.hljs-name {
+				color: var(--vscode-debugTokenExpression-name, #c586c0); // Mapped from editor-operatorForeground
+			}
+
+			.hljs-function .hljs-title,
+			.hljs-selector-attr,
+			.hljs-selector-pseudo {
+				color: var(--vscode-terminal-ansiYellow, #f1fa8c); // Mapped from editor-functionForeground
+			}
+
+			.hljs-meta,
+			.hljs-meta-keyword,
+			.hljs-meta-string {
+				color: var(--vscode-debugTokenExpression-name, #c586c0); // Mapped from editor-controlForeground
+			}
+
+			.hljs-section,
+			.hljs-title {
+				color: var(--vscode-terminal-ansiYellow, #f1fa8c); // Mapped from editor-functionForeground
+			}
+
+			.hljs-namespace {
+				color: var(--vscode-editor-foreground, #d0d0e0); // Mapped from editor-namespaceForeground
+			}
+
+			.hljs-addition {
+				color: var(
+					--vscode-gitDecoration-addedResourceForeground,
+					#81b88b
+				); // Mapped from diffEditor-insertedText
+				background-color: var(--vscode-diffEditor-insertedTextBackground, rgba(0, 128, 155, 0.2));
+			}
+
+			.hljs-deletion {
+				color: var(
+					--vscode-gitDecoration-deletedResourceForeground,
+					#c74e39
+				); // Mapped from diffEditor-removedText
+				background-color: var(--vscode-diffEditor-removedTextBackground, rgba(255, 0, 0, 0.2));
+			}
+
+			.hljs-emphasis {
+				font-style: italic;
+			}
+
+			.hljs-strong {
+				font-weight: bold;
+			}
+
+			.hljs-attr {
+				color: var(--vscode-terminal-ansiYellow, #f1fa8c); // Mapped from editor-attributeForeground
+			}
+
+			.hljs-params {
+				color: var(--vscode-textLink-foreground, #8be9fd); // Mapped from editor-parameterForeground
+			}
+
+			.hljs-selector-attr, // Already covered by .hljs-function group if using same color
+			.hljs-selector-pseudo {
+				// Already covered by .hljs-function group if using same color
+				color: var(--vscode-terminal-ansiYellow, #f1fa8c); // Mapped from editor-attributeForeground
+			}
+
+			.hljs-variable.language-java {
+				color: var(--vscode-debugTokenExpression-number, #b5cea8); // Mapped from editor-numberForeground
+			}
+
+			.hljs-title.class_ {
+				color: var(--vscode-symbolIcon-classForeground, #ee9d28);
+			}
+
+			.hljs-title.function_ {
+				color: var(--vscode-terminal-ansiYellow, #f1fa8c); // Mapped from editor-functionForeground
 			}
 		}
 
@@ -137,7 +265,7 @@ Chat Container
 
 		th,
 		td {
-			outline: 1px solid var(--vscode-editorGhostText-foreground);
+			outline: 1px solid var(--vscode-editorGhostText-foreground, rgba(255, 255, 255, 0.34));
 			padding: 10px;
 		}
 	}
@@ -160,7 +288,7 @@ Input Section Wrapper
 	display: flex;
 	align-items: center;
 	font-size: 0.9em;
-	color: var(--vscode-descriptionForeground, #666);
+	color: var(--vscode-descriptionForeground, #d0d0e0);
 
 	input[type="checkbox"] {
 		margin-right: 6px;
@@ -186,11 +314,11 @@ Input Area (Textarea + Send Button)
 #message-input {
 	flex-grow: 1;
 	padding: 8px 10px;
-	border: 1px solid var(--vscode-input-border, #ccc);
+	border: 1px solid var(--vscode-inlineChatInput-border, #454545); // Mapped from input-border
 	border-radius: $border-radius;
-	background-color: var(--vscode-input-background);
-	color: var(--vscode-input-foreground);
-	outline-color: var(--vscode-focusBorder);
+	background-color: var(--vscode-input-background, #1d1f23);
+	color: var(--vscode-input-foreground, #d0d0e0);
+	outline-color: var(--vscode-focusBorder, #3e4452);
 	min-height: $button-height;
 	max-height: 150px;
 	box-sizing: border-box;
@@ -208,9 +336,9 @@ Buttons
 button {
 	padding: 0 14px;
 	height: $button-height;
-	background-color: var(--vscode-button-background, $primary-color);
-	color: var(--vscode-button-foreground, white);
-	border: 1px solid var(--vscode-button-border, transparent);
+	background-color: var(--vscode-button-background, #2e2e3a);
+	color: var(--vscode-button-foreground, #ffffff);
+	border: 1px solid transparent; // --vscode-button-border not in new list, using original fallback logic
 	border-radius: $border-radius;
 	cursor: pointer;
 	font-size: 0.95em;
@@ -220,7 +348,7 @@ button {
 	flex-shrink: 0;
 
 	&:hover {
-		background-color: var(--vscode-button-hoverBackground, color.adjust($primary-color, $lightness: -10%));
+		background-color: var(--vscode-button-hoverBackground, #373746);
 	}
 	&:disabled {
 		opacity: 0.6;
